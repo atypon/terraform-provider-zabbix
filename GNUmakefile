@@ -1,6 +1,6 @@
 TEST?="./zabbix"
 PKG_NAME=zabbix
-DIR=~/.terraform.d/plugins
+DIR=~/.terraform.d/plugins/terraform.local/local/zabbix/1.0.0/linux_amd64/
 
 default: build
 
@@ -10,10 +10,11 @@ build:
 
 install:
 	mkdir -vp $(DIR)
-	go build -o $(DIR)/terraform-provider-zabbix
+	go build -o $(DIR)/terraform-provider-zabbix_v1.0.0
+	chmod +x $(DIR)/terraform-provider-zabbix_v1.0.0
 
 uninstall:
-	@rm -vf $(DIR)/terraform-provider-zabbix
+	@rm -vf $(DIR)/terraform-provider-zabbix_v1.0.0
 
 
 test:
