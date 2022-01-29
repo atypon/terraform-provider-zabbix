@@ -32,8 +32,8 @@ citizen:
 	rm -rf $(CDIR)
 	mkdir -vp $(CDIR)
 	go build -o $(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`
-	zip -r $(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`_linux_amd64.zip  \
+	zip -r $(CDIR)gcp-zabbix_v`jq -r .version version.json`_linux_amd64.zip  \
 		$(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`
-	shasum -a 256 $(CDIR)*.zip > $(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`_SHA256SUMS
+	shasum -a 256 $(CDIR)*.zip > $(CDIR)gcp-zabbix_v`jq -r .version version.json`_SHA256SUMS
 	gpg --batch --gen-key gen-key-script
-	gpg --detach-sign $(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`_SHA256SUMS
+	gpg --detach-sign $(CDIR)gcp-zabbix_v`jq -r .version version.json`_SHA256SUMS
