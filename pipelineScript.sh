@@ -26,6 +26,8 @@ function populateToCitizen() {
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
 pushd /workspace/citizen/
 
+ls -la
+
 
 if check
 then
