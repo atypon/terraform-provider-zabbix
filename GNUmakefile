@@ -31,9 +31,9 @@ citizen:
 	apt install -y zip jq
 	rm -rf $(CDIR)
 	mkdir -vp $(CDIR)
-	go build -o $(CDIR)terraform-provider-zabbix_v`jq -r .version citizen.json`
-	zip -r $(CDIR)terraform-provider-zabbix_v`jq -r .version citizen.json`_linux_amd64.zip  \
-		$(CDIR)terraform-provider-zabbix_v`jq -r .version citizen.json`
-	shasum -a 256 $(CDIR)*.zip > $(CDIR)terraform-provider-zabbix_v`jq -r .version citizen.json`_SHA256SUMS
+	go build -o $(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`
+	zip -r $(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`_linux_amd64.zip  \
+		$(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`
+	shasum -a 256 $(CDIR)*.zip > $(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`_SHA256SUMS
 	gpg --batch --gen-key gen-key-script
-	gpg --detach-sign $(CDIR)terraform-provider-zabbix_v`jq -r .version citizen.json`_SHA256SUMS
+	gpg --detach-sign $(CDIR)terraform-provider-zabbix_v`jq -r .version version.json`_SHA256SUMS
