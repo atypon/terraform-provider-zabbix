@@ -18,7 +18,7 @@ steps:
       - '-c'
       - |
         set -xe
-        export COMMAND="docker-credential-gcr configure-docker && docker run -e CITIZEN_ADDR=$${CITIZEN_ADDR} -e JQ=$${JQ} -v /home/cloud-user/workspace:/workspace gcr.io/atypon-devops/citizin:v0.2.1 bash /workspace/pipelineScript.sh"
+        export COMMAND="docker-credential-gcr configure-docker && docker run -e CITIZEN_ADDR=$${CITIZEN_ADDR} -e JQ=$${JQ} -v /home/cloud-user/workspace:/workspace gcr.io/atypon-devops/citizin:v0.2.2 bash /workspace/pipelineScript.sh"
         bash -xe /bin/run-builder.sh
 
 timeout: 3600s
