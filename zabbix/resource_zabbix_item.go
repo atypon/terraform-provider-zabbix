@@ -212,10 +212,10 @@ func getItemParentID(api *zabbix.API, id string) (string, error) {
 		return "", fmt.Errorf("%s, with item %s", err.Error(), id)
 	}
 	if len(items) != 1 {
-		return "", fmt.Errorf("Expected one item and got %d items", len(items))
+		return "", fmt.Errorf("expected one item and got %d items", len(items))
 	}
 	if len(items[0].ItemParent) != 1 {
-		return "", fmt.Errorf("Expected one parent for item %s and got %d", id, len(items[0].ItemParent))
+		return "", fmt.Errorf("expected one parent for item %s and got %d", id, len(items[0].ItemParent))
 	}
 	return items[0].ItemParent[0].HostID, nil
 }

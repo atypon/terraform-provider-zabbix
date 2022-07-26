@@ -68,7 +68,6 @@ func resourceZabbixTrigger() *schema.Resource {
 
 func resourceZabbixTriggerCreate(d *schema.ResourceData, meta interface{}) error {
 	trigger := createTriggerObj(d)
-
 	return createRetry(d, meta, createTrigger, trigger, resourceZabbixTriggerRead)
 }
 

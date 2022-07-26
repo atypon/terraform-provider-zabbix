@@ -64,6 +64,7 @@ func createRetry(d *schema.ResourceData, meta interface{}, create createFunc, cr
 		id, err := create(createArg, api)
 		if err != nil {
 			if sqlError(err) {
+				log.Printf("sql  error")
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)

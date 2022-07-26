@@ -1,14 +1,15 @@
 package zabbix
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/claranet/go-zabbix-api"
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mcuadros/go-version"
 )
 
 // Provider define the provider and his resources
@@ -30,6 +31,11 @@ func Provider() *schema.Provider {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ZABBIX_SERVER_URL", nil),
 			},
+			"tls_insecure": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ZABBIX_TLS_INSECURE", nil),
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -46,7 +52,6 @@ func Provider() *schema.Provider {
 			"zabbix_lld_rule":          resourceZabbixLLDRule(),
 			"zabbix_item_prototype":    resourceZabbixItemPrototype(),
 			"zabbix_trigger_prototype": resourceZabbixTriggerPrototype(),
-			"zabbix_action":            resourceZabbixAction(),
 		},
 	}
 
@@ -68,11 +73,19 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 
 	api.UserAgent = fmt.Sprintf("HashiCorp/1.0 Terraform/%s", terraformVersion)
 
-	if logging.IsDebugOrHigher() {
-		httpClient := http.Client{}
-		httpClient.Transport = logging.NewTransport("Zabbix", http.DefaultTransport)
-		api.SetClient(&httpClient)
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: d.Get("tls_insecure").(bool),
+			},
+		},
 	}
+
+	if logging.IsDebugOrHigher() {
+		client.Transport = logging.NewTransport("Zabbix", client.Transport)
+	}
+
+	api.SetClient(client)
 
 	if _, err := api.Login(d.Get("user").(string), d.Get("password").(string)); err != nil {
 		return nil, err
@@ -94,7 +107,10 @@ func getZabbixServerVersion(meta interface{}) string {
 }
 
 func isZabbixServerVersion34OrHigher(zabbixVersion string) bool {
-	return version.Compare(zabbixVersion, "3.4.0", ">=")
+	v1, _ := version.NewVersion(zabbixVersion)
+	v2, _ := version.NewVersion("3.4.0")
+
+	return v1.GreaterThanOrEqual(v2)
 }
 
 func getZabbixServerUnitDays(zabbixVersion string) string {
