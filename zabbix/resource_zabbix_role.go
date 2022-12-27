@@ -39,7 +39,7 @@ func resourceZabbixRole() *schema.Resource {
 func resourceZabbixCreateRole(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var errors TerraformErrors
 	api := meta.(*zabbix.API)
-	role, err := readRoleFromSchema(data)
+	role, err := createRoleFromResourceData(data)
 	errors.addError(err)
 	err = api.CreateAPIObject(&role)
 	errors.addError(err)
@@ -51,7 +51,7 @@ func resourceZabbixCreateRole(ctx context.Context, data *schema.ResourceData, me
 func resourceZabbixUpdateRole(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var errors TerraformErrors
 	api := meta.(*zabbix.API)
-	role, err := readRoleFromSchema(data)
+	role, err := createRoleFromResourceData(data)
 	errors.addError(err)
 	err = api.UpdateAPIObject(&role)
 	errors.addError(err)
@@ -86,7 +86,7 @@ func resourceZabbixDeleteRole(ctx context.Context, data *schema.ResourceData, me
 	return errors.getDiagnostics()
 }
 
-func readRoleFromSchema(data *schema.ResourceData) (role zabbix.Role, err error) {
+func createRoleFromResourceData(data *schema.ResourceData) (role zabbix.Role, err error) {
 	roleType, err := zabbix.NewRoleType(data.Get("type").(string))
 	role = zabbix.Role{
 		RoleID: data.Id(),
