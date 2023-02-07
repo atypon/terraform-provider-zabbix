@@ -2,70 +2,70 @@ package zabbix
 
 import (
 	"fmt"
-	"log"
-	"strings"
-
 	"github.com/claranet/go-zabbix-api"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"log"
+	"strings"
 )
 
-var ItemTypeInventoryMap = map[string]int{
-	"Zabbix agent":          0,
-	"Zabbix trapper":        2,
-	"Simple check":          3,
-	"Zabbix internal":       5,
-	"Zabbix agent (active)": 7,
-	"Web item":              9,
-	"External check":        10,
-	"Database monitor":      11,
-	"IPMI agent":            12,
-	"SSH agent":             13,
-	"Telnet agent":          14,
-	"Calculated":            15,
-	"JMX agent":             16,
-	"SNMP trap":             17,
-	"Dependent item":        18,
-	"HTTP agent":            19,
-	"SNMP_AGENT":            20,
-	"Script":                21,
+var ItemTypeInventoryMap = EnumMap{
+	"zabbix agent":          int(zabbix.ItemTypeZabbixAgent),
+	"zabbix trapper":        int(zabbix.ItemTypeZabbixTrapper),
+	"simple check":          int(zabbix.ItemTypeSimpleCheck),
+	"zabbix internal":       int(zabbix.ItemTypeZabbixInternal),
+	"zabbix agent (active)": int(zabbix.ItemTypeZabbixAgentActive),
+	"web item":              int(zabbix.ItemTypeWebItem),
+	"external check":        int(zabbix.ItemTypeExternalCheck),
+	"database monitor":      int(zabbix.ItemTypeDatabaseMonitor),
+	"ipmi agent":            int(zabbix.ItemTypeIPMIAgent),
+	"ssh agent":             int(zabbix.ItemTypeSSHAgent),
+	"telnet agent":          int(zabbix.ItemTypeTELNETAgent),
+	"calculated":            int(zabbix.ItemTypeCalculated),
+	"jmx agent":             int(zabbix.ItemTypeJMXAgent),
+	"snmp trap":             int(zabbix.SNMPTrap),
+	"dependent item":        int(zabbix.ItemTypeDependentItem),
+	"http agent":            int(zabbix.ItemTypeHTTPAgent),
+	"snmp_agent":            int(zabbix.ItemTypeSNMPAgent),
+	"script":                int(zabbix.ItemTypeScript),
 }
 
-var ValueTypeInventoryMap = map[string]int{
-	"FLOAT":    0,
-	"CHAR":     1,
+var ValueTypeInventoryMap = EnumMap{
+	"float":    0,
+	"char":     1,
 	"log":      2,
 	"unsigned": 3,
 	"text":     4,
 }
 
-var ItemPreProcessingMap = map[string]int{
-	"MULTIPLIER":                        1,
-	"Right trim":                        2,
-	"Left trim":                         3,
-	"Trim":                              4,
-	"Regular expression matching":       5,
-	"Boolean to decimal":                6,
-	"Octal to decimal":                  7,
-	"Hexadecimal to decimal":            8,
-	"Simple change":                     9,
-	"Change per second":                 10,
-	"XML XPath":                         11,
-	"JSONPath":                          12,
-	"In range":                          13,
-	"Matches regular expression":        14,
-	"Does not match regular expression": 15,
-	"Check for error in JSON":           16,
-	"Check for error in XML":            17,
-	"Check for error using regular expression": 18,
-	"Discard unchanged":                        19,
-	"Discard unchanged with heartbeat":         20,
-	"JavaScript":                               21,
-	"Prometheus pattern":                       22,
-	"Prometheus to JSON":                       23,
-	"CSV to JSON":                              24,
-	"Replace":                                  25,
-	"Check unsupported":                        26,
-	"XML to JSON":                              27,
+var ItemPreProcessingMap = EnumMap{
+	"multiplier":                        1,
+	"right trim":                        2,
+	"left trim":                         3,
+	"trim":                              4,
+	"regular expression matching":       5,
+	"boolean to decimal":                6,
+	"octal to decimal":                  7,
+	"hexadecimal to decimal":            8,
+	"simple change":                     9,
+	"change per second":                 10,
+	"xml xpath":                         11,
+	"jsonpath":                          12,
+	"in range":                          13,
+	"matches regular expression":        14,
+	"does not match regular expression": 15,
+	"check for error in json":           16,
+	"check for error in xml":            17,
+	"check for error using regular expression": 18,
+	"discard unchanged":                        19,
+	"discard unchanged with heartbeat":         20,
+	"javascript":                               21,
+	"prometheus pattern":                       22,
+	"prometheus to json":                       23,
+	"csv to json":                              24,
+	"replace":                                  25,
+	"check unsupported":                        26,
+	"xml to json":                              27,
 }
 
 func resourceZabbixItem() *schema.Resource {
@@ -104,35 +104,16 @@ func resourceZabbixItem() *schema.Resource {
 				Description: "Name of the item.",
 			},
 			"type": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  0,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-
-					if val != nil {
-						value := ItemTypeInventoryMap[val.(string)]
-						if value < 0 || value > 21 {
-							errs = append(errs, fmt.Errorf("%q, must be between 0 and 16 inclusive, got %d", key, value))
-						} else {
-							//log.Printf(string(rune(value)))
-						}
-
-					}
-
-					return
-				},
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice(ItemTypeInventoryMap.types(), true)),
+				Default:          "zabbix agent",
 			},
 			"value_type": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  0,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					value := ValueTypeInventoryMap[val.(string)]
-					if value < 0 || value > 4 {
-						errs = append(errs, fmt.Errorf("%q, must be between 0 and 4 inclusive, got %d", key, value))
-					}
-					return
-				},
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          0,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice(ValueTypeInventoryMap.types(), true)),
 			},
 			"data_type": &schema.Schema{
 				Type:        schema.TypeInt,
@@ -225,19 +206,9 @@ func resourceZabbixItem() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-											if val != nil {
-												value := ItemPreProcessingMap[val.(string)]
-												log.Println("value is ", value)
-												if value < 1 || value > 27 {
-													errs = append(errs, fmt.Errorf("%q, must be between 1 and 27 inclusive, got %d", key, value))
-												}
-												val = value
-											}
-											return
-										},
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice(ItemPreProcessingMap.types(), true)),
 									},
 									"value": {
 										Type:     schema.TypeString,
@@ -260,8 +231,8 @@ func createItemObject(d *schema.ResourceData) *zabbix.Item {
 		InterfaceID:  d.Get("interface_id").(string),
 		Key:          d.Get("key").(string),
 		Name:         d.Get("name").(string),
-		Type:         zabbix.ItemType(ItemTypeInventoryMap[d.Get("type").(string)]),
-		ValueType:    zabbix.ValueType(ValueTypeInventoryMap[d.Get("value_type").(string)]),
+		Type:         zabbix.ItemType(ItemTypeInventoryMap[strings.ToLower(d.Get("type").(string))]),
+		ValueType:    zabbix.ValueType(ValueTypeInventoryMap[strings.ToLower(d.Get("value_type").(string))]),
 		DataType:     zabbix.DataType(d.Get("data_type").(int)),
 		Delta:        zabbix.DeltaType(d.Get("delta").(int)),
 		Description:  d.Get("description").(string),
@@ -283,7 +254,7 @@ func createPreProcessorObject(lst []interface{}) (PreprocessorList zabbix.Prepro
 		stepMap := v.(map[string]interface{})["step"].([]interface{})
 		for _, v := range stepMap {
 			//log.Printf("Type 2 is ",key)
-			key := ItemPreProcessingMap[v.(map[string]interface{})["type"].(string)]
+			key := ItemPreProcessingMap[strings.ToLower(v.(map[string]interface{})["type"].(string))]
 			log.Printf("Type 2 is " + v.(map[string]interface{})["type"].(string))
 			log.Println(key)
 			value := v.(map[string]interface{})["value"].(string)
@@ -313,8 +284,8 @@ func resourceZabbixItemRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("interface_id", item.InterfaceID)
 	d.Set("key", item.Key)
 	d.Set("name", item.Name)
-	d.Set("type", item.Type)
-	d.Set("value_type", item.ValueType)
+	d.Set("type", ItemTypeInventoryMap.getStringType(int(item.Type)))
+	d.Set("value_type", ValueTypeInventoryMap.getStringType(int(item.ValueType)))
 	d.Set("data_type", item.DataType)
 	d.Set("delta", item.Delta)
 	d.Set("description", item.Description)

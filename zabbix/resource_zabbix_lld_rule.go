@@ -2,6 +2,7 @@ package zabbix
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 	"strings"
 
@@ -20,34 +21,36 @@ func resourceZabbixLLDRule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
-			"delay": &schema.Schema{
+			"delay": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"host_id": &schema.Schema{
+			"host_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"interface_id": &schema.Schema{
+			"interface_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"key": &schema.Schema{Type: schema.TypeString,
+			"key": {Type: schema.TypeString,
 				Required: true,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"type": &schema.Schema{
-				Type:     schema.TypeInt,
-				Required: true,
+			"type": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateDiagFunc: validation.ToDiagFunc(validation.StringInSlice(ItemTypeInventoryMap.types(), true)),
+				Default:          "zabbix agent",
 			},
-			"filter": &schema.Schema{
+			"filter": {
 				Type:     schema.TypeSet,
 				MaxItems: 1,
 				Elem:     schemaLLDRuleFilter(),
-				Required: true,
+				Optional: true,
 			},
 		},
 	}
@@ -56,16 +59,16 @@ func resourceZabbixLLDRule() *schema.Resource {
 func schemaLLDRuleFilter() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"condition": &schema.Schema{
+			"condition": {
 				Type:     schema.TypeSet,
 				Elem:     schemaLLDRuleFilterCondition(),
 				Required: true,
 			},
-			"eval_type": &schema.Schema{
+			"eval_type": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"formula": &schema.Schema{
+			"formula": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "",
@@ -77,15 +80,15 @@ func schemaLLDRuleFilter() *schema.Resource {
 func schemaLLDRuleFilterCondition() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"macro": &schema.Schema{
+			"macro": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"value": &schema.Schema{
+			"value": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"operator": &schema.Schema{
+			"operator": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  "8",
@@ -173,19 +176,26 @@ func resourceZabbixLLDRuleDelete(d *schema.ResourceData, meta interface{}) error
 }
 
 func createLLDRuleObject(d *schema.ResourceData) zabbix.LLDRule {
-	return zabbix.LLDRule{
+	lldRule := zabbix.LLDRule{
 		Delay:       d.Get("delay").(string),
 		HostID:      d.Get("host_id").(string),
 		InterfaceID: d.Get("interface_id").(string),
 		Key:         d.Get("key").(string),
 		Name:        d.Get("name").(string),
-		Type:        zabbix.ItemType(d.Get("type").(int)),
-		Filter:      createLLDRuleConditionObject(d),
+		Type:        zabbix.ItemType(ItemTypeInventoryMap[d.Get("type").(string)]),
 	}
+	filter := createLLDRuleConditionObject(d)
+	if filter != nil {
+		lldRule.Filter = filter
+	}
+	return lldRule
 }
 
-func createLLDRuleConditionObject(d *schema.ResourceData) zabbix.LLDRuleFilter {
+func createLLDRuleConditionObject(d *schema.ResourceData) *zabbix.LLDRuleFilter {
 	filters := d.Get("filter").(*schema.Set)
+	if filters.Len() == 0 {
+		return nil
+	}
 	filter := filters.List()[0].(map[string]interface{})
 	conditions := filter["condition"].(*schema.Set)
 	var filterObject zabbix.LLDRuleFilter
@@ -201,7 +211,7 @@ func createLLDRuleConditionObject(d *schema.ResourceData) zabbix.LLDRuleFilter {
 		}
 		filterObject.Conditions = append(filterObject.Conditions, cond)
 	}
-	return filterObject
+	return &filterObject
 }
 
 func createLLDRule(rule interface{}, api *zabbix.API) (id string, err error) {
