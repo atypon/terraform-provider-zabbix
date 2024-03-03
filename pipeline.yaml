@@ -7,7 +7,7 @@ steps:
     entrypoint: 'make'
     args:
       - 'citizen'
-  - name: gcr.io/atypon-devops/remote-builder
+  - name: us-central1-docker.pkg.dev/atypon-artifact/docker-registry/atypon-devops/remote-builder
     entrypoint: 'bash'
     env:
       - JQ=.versions[].version
